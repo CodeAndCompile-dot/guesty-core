@@ -13,13 +13,9 @@ class IntegrationServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected array $integrations = [
-        // Phase 3+: Uncomment as integrations are created
-        // \App\Integrations\Guesty\Contracts\GuestyClientInterface::class => \App\Integrations\Guesty\GuestyClient::class,
-        // \App\Integrations\Guesty\Contracts\GuestyPropertyApiInterface::class => \App\Integrations\Guesty\GuestyPropertyApi::class,
-        // \App\Integrations\Guesty\Contracts\GuestyBookingApiInterface::class => \App\Integrations\Guesty\GuestyBookingApi::class,
-        // \App\Integrations\Guesty\Contracts\GuestyQuoteApiInterface::class => \App\Integrations\Guesty\GuestyQuoteApi::class,
-        // \App\Integrations\Guesty\Contracts\GuestyPaymentApiInterface::class => \App\Integrations\Guesty\GuestyPaymentApi::class,
-        // \App\Integrations\Guesty\Contracts\GuestyReviewApiInterface::class => \App\Integrations\Guesty\GuestyReviewApi::class,
+        // Phase 5: Guesty PMS Integration
+        \App\Integrations\Guesty\Contracts\GuestyClientInterface::class => \App\Integrations\Guesty\GuestyClient::class,
+        // Phase 6+: Uncomment as integrations are created
         // \App\Integrations\PriceLabs\Contracts\PriceLabsClientInterface::class => \App\Integrations\PriceLabs\PriceLabsClient::class,
         // \App\Integrations\Stripe\Contracts\StripeGatewayInterface::class => \App\Integrations\Stripe\StripeGateway::class,
         // \App\Integrations\PayPal\Contracts\PayPalGatewayInterface::class => \App\Integrations\PayPal\PayPalGateway::class,

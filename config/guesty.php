@@ -16,6 +16,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Guesty Booking Engine API
+    |--------------------------------------------------------------------------
+    |
+    | OAuth2 credentials for the Guesty Booking Engine (booking.guesty.com).
+    |
+    */
+
+    'booking_client_id' => env('GUESTY_BOOKING_CLIENT_ID', ''),
+    'booking_client_secret' => env('GUESTY_BOOKING_CLIENT_SECRET', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | API Endpoints
     |--------------------------------------------------------------------------
     */

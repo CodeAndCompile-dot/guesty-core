@@ -140,4 +140,12 @@ class CrudService
     {
         return $this->duplicateRecord($this->repository, $id);
     }
+
+    /**
+     * Get the underlying upload service.
+     */
+    public function getUploadService(): UploadService
+    {
+        return $this->uploadService;
+    }
 }

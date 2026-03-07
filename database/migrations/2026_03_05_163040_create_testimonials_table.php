@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('status')->default('false');
             $table->integer('ordering')->nullable()->default(0);
 
-            $table->index(['name', 'property_id', 'status'], 'name');
+            $table->index(['name', 'property_id', 'status'], 'testimonials_name_index');
         });
     }
 

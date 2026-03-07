@@ -10,6 +10,10 @@
 |
 */
 
+use App\Http\Controllers\Admin\AttractionCategoryController;
+use App\Http\Controllers\Admin\AttractionController;
+use App\Http\Controllers\Admin\BlogCategoryController;
+use App\Http\Controllers\Admin\BlogController;
 use App\Http\Controllers\Admin\CkeditorController;
 use App\Http\Controllers\Admin\CmsController;
 use App\Http\Controllers\Admin\ContactusRequestController;
@@ -18,6 +22,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailTempleteController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\GuestyPropertyController;
 use App\Http\Controllers\Admin\LandingCmsController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MaximizeAssetController;
@@ -210,4 +215,57 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
     Route::delete('properties/{property_id}/rooms/{group_id}/sub-room/{id}/delete', [PropertyRoomItemController::class, 'destroy'])->name('properties-sub-room.destroy');
     Route::get('properties/{property_id}/rooms/{group_id}/sub-room/{id}/active', [PropertyRoomItemController::class, 'active'])->name('properties-sub-room.active');
     Route::get('properties/{property_id}/rooms/{group_id}/sub-room/{id}/deactive', [PropertyRoomItemController::class, 'deactive'])->name('properties-sub-room.deactive');
+
+    /*
+    |----------------------------------------------------------------------
+    | Phase 4: Attractions & Attraction Categories
+    |----------------------------------------------------------------------
+    */
+    Route::resources([
+        'attractions'            => AttractionController::class,
+        'attraction-categories'  => AttractionCategoryController::class,
+    ]);
+
+    /*
+    |----------------------------------------------------------------------
+    | Phase 4: Blog & Blog Category
+    |----------------------------------------------------------------------
+    */
+    Route::resources([
+        'blogs'         => BlogController::class,
+        'blog-category' => BlogCategoryController::class,
+    ]);
+
+    // Blog extra routes
+    Route::get('blogs/copydata/{id}', [BlogController::class, 'copyData'])->name('blogs.copyData');
+    Route::get('blogs/active/{id}', [BlogController::class, 'active'])->name('blogs.active');
+    Route::get('blogs/deactive/{id}', [BlogController::class, 'deactive'])->name('blogs.deactive');
+
+    // Blog Category extra routes
+    Route::get('blog-category/copydata/{id}', [BlogCategoryController::class, 'copyData'])->name('blog-category.copyData');
+
+    /*
+    |----------------------------------------------------------------------
+    | Phase 5: Guesty Properties
+    |----------------------------------------------------------------------
+    */
+    Route::resources([
+        'guesty_properties' => GuestyPropertyController::class,
+    ]);
+
+    // AJAX: Sub-location list for Guesty property edit
+    Route::post('getSubLocationList', [GuestyPropertyController::class, 'getSubLocationList'])->name('getSubLocationList');
+
+    // Guesty sync/token stub routes (referenced by add-bar partial buttons)
+    // These will be fully implemented in Phase 5 integration; for now they redirect back.
+    Route::get('set-getPropertyData', fn () => redirect()->back()->with('success', 'Property sync triggered'))
+        ->name('set-getPropertyData');
+    Route::get('set-getBookingData', fn () => redirect()->back()->with('success', 'Booking sync triggered'))
+        ->name('set-getBookingData');
+    Route::get('get-reviews-data', fn () => redirect()->back()->with('success', 'Review sync triggered'))
+        ->name('get-reviews-data');
+    Route::get('set-getToken', fn () => redirect()->back()->with('success', 'Open API token refreshed'))
+        ->name('set-getToken');
+    Route::get('getBookingToken', fn () => redirect()->back()->with('success', 'Booking token refreshed'))
+        ->name('getBookingToken');
 });

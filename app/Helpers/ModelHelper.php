@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 use App\Models\BasicSetting;
+use App\Models\BlogCategory;
+use App\Models\AttractionCategory;
 use App\Models\Cms;
 use App\Models\Location;
 use App\Models\Property;
@@ -84,5 +86,21 @@ class ModelHelper
     public function getAttributeGroupSelect(): array
     {
         return [];
+    }
+
+    /**
+     * Get blog categories as a select list (id => title).
+     */
+    public function getBlogCategoriesSelect(): array
+    {
+        return BlogCategory::pluck('title', 'id')->toArray();
+    }
+
+    /**
+     * Get attraction categories as a select list (id => name).
+     */
+    public function getAttractionCategorySelect(): array
+    {
+        return AttractionCategory::pluck('name', 'id')->toArray();
     }
 }
