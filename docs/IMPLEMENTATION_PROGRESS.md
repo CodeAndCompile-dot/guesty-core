@@ -276,6 +276,128 @@
 
 ---
 
+## Phase 6 — iCal, PriceLabs & Calendar (Complete)
+
+### Migrations (2)
+| File | Notes |
+|------|-------|
+| `database/migrations/2026_03_05_163040_create_ical_events_table.php` | 11 columns: ppp_id, ical_link, start_date, end_date, text, event_pid, cat_id, uid, event_type, booking_status |
+| `database/migrations/2026_03_05_163040_create_ical_import_list_table.php` | 3 columns; SQLite-safe conditional prefix indexes |
+
+### Models (2)
+| File | Table | Notes |
+|------|-------|-------|
+| `app/Models/IcalEvent.php` | ical_events | 10 fillable, date casts, relationships to Property & IcalImportList |
+| `app/Models/IcalImportList.php` | ical_import_list | 2 fillable, relationships to Property & IcalEvent |
+
+### Integration Classes (3)
+| File | Notes |
+|------|-------|
+| `app/Integrations/ICal/ICalParser.php` | ~230 lines: parseUrl (Http::get), parseString (full RFC 5545 parser), getMySQLDate, day/type conversion helpers, RRULE/EXDATE parsing |
+| `app/Integrations/ICal/ICalExporter.php` | buildCalendar (VCALENDAR string builder), writeToFile, getPropertyIcsPath (zero-padded 6-digit ID) |
+| `app/Integrations/PriceLabs/PriceLabsClient.php` | getListingPrices (Http::post with X-API-Key header, 30s timeout) |
+
+### Service Classes (3)
+| File | Notes |
+|------|-------|
+| `app/Services/Calendar/ICalService.php` | refreshImport (delete+parse+save), refreshAllImports, exportWebsiteEvents, exportPropertyIcs |
+| `app/Services/Calendar/AvailabilityService.php` | dateRange, getCheckInCheckOut, getCheckInCheckOutBlocked — preserves legacy Guesty-overwrite bug for compatibility |
+| `app/Services/Calendar/PriceLabsSyncService.php` | syncAll (loop properties), syncProperty (PriceLabsClient + DB::transaction delete+create PropertyRate) |
+
+### Facade & Helper (2)
+| File | Notes |
+|------|-------|
+| `app/Helpers/LiveCart.php` | Thin wrapper delegating to ICalService & AvailabilityService |
+| `app/Facades/LiveCart.php` | Facade accessor, registered in AppServiceProvider |
+
+### Controllers (2)
+| File | Notes |
+|------|-------|
+| `app/Http/Controllers/Admin/PropertyCalendarController.php` | index, create, store, importlist, importlistRefresh, selfIcalRefresh, destroy |
+| `app/Http/Controllers/ICalController.php` | getEventsICalObject, refresshCalendar, setPriceLab, setCronJob, sendWelcomePackage (stub), sendReviewEmail (stub) |
+
+### Routes
+| File | Routes Added |
+|------|-------------|
+| `routes/web/admin.php` | 7 property-calendar routes (index, import-list, importlistRefresh, create, store, destroy, selfIcalRefresh) |
+| `routes/web/public.php` | 5 public/cron routes (set-cron-job, refresh-calendar-data, set-pricelab, send-welcome-packages, send-review-email) |
+
+### Views (3, previously copied)
+| File |
+|------|
+| `resources/views/admin/properties-calendar/index.blade.php` |
+| `resources/views/admin/properties-calendar/create.blade.php` |
+| `resources/views/admin/properties-calendar/importlist.blade.php` |
+
+### Tests (4 files, 32 tests)
+| File | Tests |
+|------|-------|
+| `tests/Feature/Admin/PropertyCalendarControllerTest.php` | 12 tests |
+| `tests/Unit/ICalParserTest.php` | 8 tests |
+| `tests/Unit/AvailabilityServiceTest.php` | 6 tests |
+| `tests/Unit/ICalServiceTest.php` | 3 tests |
+| `tests/Unit/PriceLabsSyncServiceTest.php` | 4 tests |
+
+### Known Legacy Bugs Preserved
+| # | Bug | Reason |
+|---|-----|--------|
+| 5 | `booking_status="booking-confirmed123"` dead code in iCalDataCheckInCheckOut | No-op, never matches |
+| 12 | Guesty data overwrites iCal data when GuestyProperty exists | Backward compatibility |
+| 14 | `die` in catch blocks in PriceLabs sync (fixed: proper logging) | Architecture improvement |
+| 16 | `env()` calls replaced with `config()` | Best practice |
+
+---
+
+## Phase 7 — Booking & Availability ✅
+
+**Completed**: Booking CRUD, availability wiring, Helper methods, tests.
+
+### New Files Created
+| File | Purpose |
+|------|---------|
+| `database/migrations/2026_03_08_100000_create_booking_requests_table.php` | ~85 column booking_requests table (strings for SQLite compat) |
+| `database/migrations/2026_03_08_100001_create_payments_table.php` | Payments table (10 columns) |
+| `app/Models/BookingRequest.php` | 80+ fillable fields, relationships to Property & Payment |
+| `app/Models/Payment.php` | Payment model with BelongsTo BookingRequest |
+| `app/Services/BookingService.php` | Business logic: list, store, update, cancel, confirm |
+| `app/Http/Requests/BookingRequestFormRequest.php` | Proper validation (was empty in legacy) |
+| `app/Http/Controllers/Admin/BookingRequestController.php` | Thin controller: CRUD + confirm + AJAX |
+| `resources/views/admin/booking-enquiries/index.blade.php` | All bookings list with DataTable + modal |
+| `resources/views/admin/booking-enquiries/create.blade.php` | Create form with datepicker + AJAX |
+| `resources/views/admin/booking-enquiries/edit.blade.php` | Edit form with datepicker + AJAX |
+| `resources/views/admin/booking-enquiries/form.blade.php` | Create form partial |
+| `resources/views/admin/booking-enquiries/edit-form.blade.php` | Edit form partial (financial breakdown) |
+| `resources/views/admin/booking-enquiries/show.blade.php` | Per-property booking list + modal |
+| `tests/Feature/Admin/BookingRequestControllerTest.php` | 19 controller tests |
+| `tests/Unit/BookingServiceTest.php` | 14 service unit tests |
+| `tests/Unit/BookingRequestModelTest.php` | 8 model/relationship tests |
+
+### Modified Files
+| File | Change |
+|------|--------|
+| `routes/web/admin.php` | Added BookingRequestController import + 6 routes (resource + confirm + singleProperty + AJAX + quote stubs) |
+| `app/Services/Calendar/AvailabilityService.php` | Wired BookingRequest queries into Step 3 (dead-code) and Step 4 (booking-confirmed) |
+| `app/Helpers/Helper.php` | Added `getBookingStatus()` and `checkStatus()` methods |
+
+### Routes Added
+| Method | URI | Name |
+|--------|-----|------|
+| POST | `client-login/get-checkin-checkout-data-gaurav` | `get-checkin-checkout-data-gaurav` |
+| POST | `client-login/admin-checkajax-get-quote` | `admin-checkajax-get-quote` (stub) |
+| POST | `client-login/admin-checkajax-get-quote-edit` | `admin-checkajax-get-quote-edit` (stub) |
+| GET | `client-login/booking-enquiries/confirmed/{id}` | `booking-enquiry-confirm` |
+| GET | `client-login/booking-enquiries/properties/{id}` | `singlePropertyBookoing` |
+| GET/POST/PUT/DELETE | `client-login/booking-enquiries` | `booking-enquiries.*` (resource) |
+
+### Architecture Improvements
+- **Proper validation**: Legacy had empty `Validator::make` rules; replaced with typed FormRequest
+- **Service extraction**: All business logic in BookingService (thin controller pattern)
+- **Null-safety**: `json_decode($data ?? '[]')` and `($setting_data['payment_currency'] ?? '')` 
+- **Route helper**: `route('booking-enquiry-confirm', $id)` instead of hardcoded `url('admin/...')`
+- **iCal refresh**: iterates IcalImportList per-property instead of single-arg call
+
+---
+
 ## Test Summary
 
 | Phase | Tests | Assertions |
@@ -283,7 +405,9 @@
 | Phase 0-3 | 129 | 268 |
 | Phase 4 | +35 | +90 |
 | Phase 5 | +28 | +70 |
-| **Total** | **192** | **428** |
+| Phase 6 | +32 | +87 |
+| Phase 7 | +41 | +115 |
+| **Total** | **265** | **630** |
 
 All tests passing ✅
 
@@ -292,8 +416,8 @@ All tests passing ✅
 ## Phases Remaining
 
 - [x] Phase 5 — Guesty PMS Integration (API service, admin controller, sync endpoints)
-- [ ] Phase 6 — iCal, PriceLabs & Calendar (iCal parser, calendar controller, PriceLabs service)
-- [ ] Phase 7 — Booking & Availability (booking flow, availability engine, guest management)
+- [x] Phase 6 — iCal, PriceLabs & Calendar (iCal parser, calendar controller, PriceLabs service)
+- [x] Phase 7 — Booking & Availability (booking flow, availability engine, guest management)
 - [ ] Phase 8 — Payment Module (Stripe integration, invoice generation)
 - [ ] Phase 9 — Email Automation & Scheduled Jobs (Mailable classes, queue jobs, scheduling)
 - [ ] Phase 10 — Public Website & Final Cleanup (front controllers, public routes, regression tests)

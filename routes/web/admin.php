@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AttractionCategoryController;
 use App\Http\Controllers\Admin\AttractionController;
 use App\Http\Controllers\Admin\BlogCategoryController;
 use App\Http\Controllers\Admin\BlogController;
+use App\Http\Controllers\Admin\BookingRequestController;
 use App\Http\Controllers\Admin\CkeditorController;
 use App\Http\Controllers\Admin\CmsController;
 use App\Http\Controllers\Admin\ContactusRequestController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\Admin\OurClientController;
 use App\Http\Controllers\Admin\OurTeamController;
 use App\Http\Controllers\Admin\PropertyAmenityController;
 use App\Http\Controllers\Admin\PropertyAmenityGroupController;
+use App\Http\Controllers\Admin\PropertyCalendarController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyManagementRequestController;
 use App\Http\Controllers\Admin\PropertyRateController;
@@ -141,11 +143,18 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
     Route::post('image-delete-asset', [PropertyController::class, 'imageDeleteAsset'])->name('image-delete-asset');
     Route::get('delete-property-space-single', [PropertyController::class, 'deletePropertySpace'])->name('delete-property-space-single');
 
-    // Stub route for calendar refresh (Phase 6 — iCal). Avoids view crash in add-bar partial.
-    Route::get('refresh-calendar-data', fn () => redirect()->back())->name('refresshCalendar');
-
-    // Stub route for property calendar (Phase 6 — iCal). Avoids view crash in property index.
-    Route::get('properties/{property_id}/calendar', fn ($property_id) => redirect()->route('properties.edit', $property_id))->name('properties-calendar.index');
+    /*
+    |----------------------------------------------------------------------
+    | Phase 6: Property Calendar (iCal import/export per property)
+    |----------------------------------------------------------------------
+    */
+    Route::get('properties/{property_id}/calendar', [PropertyCalendarController::class, 'index'])->name('properties-calendar.index');
+    Route::get('properties/{property_id}/calendar/import-list', [PropertyCalendarController::class, 'importlist'])->name('properties-calendar.import-list');
+    Route::get('properties/{property_id}/calendar/import-list-refresh/{id}', [PropertyCalendarController::class, 'importlistRefresh'])->name('properties-calendar.importlistRefresh');
+    Route::get('properties/{property_id}/calendar/create', [PropertyCalendarController::class, 'create'])->name('properties-calendar.create');
+    Route::post('properties/{property_id}/calendar/create', [PropertyCalendarController::class, 'store'])->name('properties-calendar.store');
+    Route::delete('properties/{property_id}/calendar/{id}/delete', [PropertyCalendarController::class, 'destroy'])->name('properties-calendar.destroy');
+    Route::get('properties/{property_id}/calendar/self-ical-refresh', [PropertyCalendarController::class, 'selfIcalRefresh'])->name('properties-calendar.selfIcalRefresh');
 
     /*
     |----------------------------------------------------------------------
@@ -268,4 +277,28 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
         ->name('set-getToken');
     Route::get('getBookingToken', fn () => redirect()->back()->with('success', 'Booking token refreshed'))
         ->name('getBookingToken');
+
+    /*
+    |----------------------------------------------------------------------
+    | Phase 7: Booking Enquiries
+    |----------------------------------------------------------------------
+    */
+    // AJAX: calendar availability for create/edit datepickers
+    Route::post('get-checkin-checkout-data-gaurav', [BookingRequestController::class, 'getCheckinCheckoutDataGaurav'])
+        ->name('get-checkin-checkout-data-gaurav');
+
+    // AJAX: quote calculation stubs (referenced by booking create/edit blade views)
+    // Will be fully implemented in Phase 10 (PageController); for now they return empty JSON.
+    Route::post('admin-checkajax-get-quote', fn () => response()->json([]))
+        ->name('admin-checkajax-get-quote');
+    Route::post('admin-checkajax-get-quote-edit', fn () => response()->json([]))
+        ->name('admin-checkajax-get-quote-edit');
+
+    // Must be registered BEFORE the resource route so they don't clash
+    Route::get('booking-enquiries/confirmed/{id}', [BookingRequestController::class, 'confirmed'])
+        ->name('booking-enquiry-confirm');
+    Route::get('booking-enquiries/properties/{id}', [BookingRequestController::class, 'singlePropertyBookoing'])
+        ->name('singlePropertyBookoing');
+
+    Route::resource('booking-enquiries', BookingRequestController::class);
 });

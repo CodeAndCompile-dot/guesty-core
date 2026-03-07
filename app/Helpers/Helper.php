@@ -138,4 +138,45 @@ class Helper
 
         return 'uploads/no-image.jpg';
     }
+
+    /* ------------------------------------------------------------------ */
+    /*  Phase 7: Booking status helpers (used by booking-enquiries views)  */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Render a booking-status badge/button for admin booking list.
+     *
+     * Legacy: uses url('admin/...') — we use route() for prefix-agnosticism.
+     */
+    public function getBookingStatus(?string $item, int $id): string
+    {
+        $s = '';
+
+        if ($item === 'booked') {
+            $s = '<a href="'.route('booking-enquiry-confirm', $id).'" class="btn btn-xs btn-primary">Accept Booking</a>';
+        }
+        if ($item === 'rental-aggrement-success' || $item === 'rental-aggrement') {
+            $s = '<a href="'.route('booking-enquiry-confirm', $id).'" class="btn btn-xs btn-warning">Booking Accepted</a>';
+        }
+        if ($item === 'booking-confirmed') {
+            $s = '<a href="javascript:;" class="btn btn-xs btn-success">Booking Confirmed</a>';
+        }
+        if ($item === 'booking-cancel') {
+            $s = '<a href="javascript:;" class="btn btn-xs btn-danger">Booking Cancelled</a>';
+        }
+
+        return $s;
+    }
+
+    /**
+     * Render a check/cross icon for boolean-ish 'true'/'false' string values.
+     */
+    public function checkStatus(?string $item): string
+    {
+        if ($item === 'true') {
+            return '<i class="fa fa-check"></i>';
+        }
+
+        return '<i class="fa fa-times"></i>';
+    }
 }
