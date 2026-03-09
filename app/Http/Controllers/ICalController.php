@@ -5,20 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\IcalEvent;
 use App\Services\Calendar\ICalService;
 use App\Services\Calendar\PriceLabsSyncService;
+use App\Services\Communication\ReminderService;
+use App\Services\Communication\ReviewRequestService;
+use App\Services\Communication\WelcomePackageService;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Public/cron iCal and PriceLabs endpoints.
- * Ports legacy ICalController (calendar refresh, PriceLabs sync, .ics export).
- *
- * Email automation methods (sendWelcomePackage, sendReminderPackage, sendReviewEmail)
- * depend on BookingRequest model and will be added in Phase 9.
+ * Ports legacy ICalController (calendar refresh, PriceLabs sync, .ics export, email automation).
  */
 class ICalController extends Controller
 {
     public function __construct(
         protected ICalService $icalService,
         protected PriceLabsSyncService $priceLabsService,
+        protected WelcomePackageService $welcomePackageService,
+        protected ReminderService $reminderService,
+        protected ReviewRequestService $reviewRequestService,
     ) {}
 
     /**
@@ -87,7 +90,9 @@ class ICalController extends Controller
 
     /**
      * Cron job: refresh calendar + send emails + sync PriceLabs.
-     * Email methods (sendReminderPackage, sendWelcomePackage) will be added in Phase 9.
+     *
+     * Legacy HTTP-cron endpoint preserved for backward compatibility.
+     * Prefer `php artisan schedule:run` for new deployments.
      */
     public function setCronJob()
     {
@@ -106,24 +111,36 @@ class ICalController extends Controller
             Log::error('Cron: PriceLabs sync failed', ['error' => $e->getMessage()]);
         }
 
-        // Phase 9 will add: sendReminderPackage, sendWelcomePackage
+        try {
+            $this->welcomePackageService->process();
+        } catch (\Throwable $e) {
+            Log::error('Cron: Welcome packages failed', ['error' => $e->getMessage()]);
+        }
+
+        try {
+            $this->reminderService->process();
+        } catch (\Throwable $e) {
+            Log::error('Cron: Reminders failed', ['error' => $e->getMessage()]);
+        }
     }
 
     /**
-     * Stub: Send welcome packages (Phase 9 — BookingRequest dependency).
+     * Send welcome packages to guests approaching check-in.
      */
     public function sendWelcomePackage()
     {
-        // Will be implemented in Phase 9 when BookingRequest model exists.
-        return redirect()->back();
+        $this->welcomePackageService->process();
+
+        return redirect()->back()->with('success', 'Welcome packages sent');
     }
 
     /**
-     * Stub: Send review emails (Phase 9 — BookingRequest dependency).
+     * Send review-request emails to guests after checkout.
      */
     public function sendReviewEmail()
     {
-        // Will be implemented in Phase 9 when BookingRequest model exists.
-        return redirect()->back();
+        $this->reviewRequestService->process();
+
+        return redirect()->back()->with('success', 'Review requests sent');
     }
 }

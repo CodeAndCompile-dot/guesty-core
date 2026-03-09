@@ -2,10 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
 /*
 |--------------------------------------------------------------------------
 | Split Route Files
@@ -17,6 +13,6 @@ Route::get('/', function () {
 */
 
 require __DIR__.'/web/auth.php';
-require __DIR__.'/web/public.php';
 require __DIR__.'/web/admin.php';
 require __DIR__.'/web/booking.php';
+require __DIR__.'/web/public.php'; // Must be last — contains catch-all {seo_url} route

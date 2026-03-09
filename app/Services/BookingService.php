@@ -6,7 +6,9 @@ use App\Models\BookingRequest;
 use App\Models\IcalImportList;
 use App\Models\Property;
 use App\Services\Calendar\ICalService;
+use App\Services\Communication\EmailService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * BookingService – business logic for creating, updating, confirming and
@@ -19,6 +21,7 @@ class BookingService
 {
     public function __construct(
         protected ICalService $icalService,
+        protected EmailService $emailService,
     ) {}
 
     /* ------------------------------------------------------------------ */
@@ -127,10 +130,9 @@ class BookingService
                 $this->icalService->refreshImport($propertyId, $import->ical_link, $import->id);
             }
 
-            // Email sending is a Phase 9 concern – stub for now
-            // Legacy sent booking-cancel-admin-email and booking-cancel-user-email
+            // Send cancellation emails
             if ($booking->booking_type_admin === 'invoice') {
-                // TODO Phase 9: Send cancel emails via MailHelper
+                $this->sendCancelEmails($booking, $property);
             }
         }
 
@@ -160,8 +162,8 @@ class BookingService
             return ['success' => false, 'property_id' => null, 'message' => 'Property not found'];
         }
 
-        // Phase 9 TODO: Send booking-confirmation-user-email via MailHelper
-        // Legacy: $html=view("mail.booking-confirmation-user-email",compact("data","property"))->render();
+        // Send booking-confirmation email with Pay Now link
+        $this->sendConfirmationEmail($booking, $property);
 
         $booking->booking_status = 'rental-aggrement';
         $booking->save();
@@ -180,5 +182,60 @@ class BookingService
     public function find(int $id): ?BookingRequest
     {
         return BookingRequest::find($id);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Email helpers                                                       */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Send booking-confirmation email (Pay Now link) to the customer.
+     */
+    protected function sendConfirmationEmail(BookingRequest $booking, Property $property): void
+    {
+        try {
+            $data = $booking->toArray();
+            $html = view('mail.booking-confirmation-user-email', compact('data', 'property'))->render();
+
+            $this->emailService->sendRenderedHtml(
+                $html,
+                $booking->email,
+                'Booking Confirmation — ' . ($property->name ?? 'Property'),
+            );
+        } catch (\Throwable $e) {
+            Log::error('Booking confirmation email failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send cancellation emails to admin and customer.
+     */
+    protected function sendCancelEmails(BookingRequest $booking, Property $property): void
+    {
+        try {
+            $data     = $booking->toArray();
+            $adminTo  = \ModelHelper::getDataFromSetting('cancel_receiving_mail') ?? '';
+            $subject  = 'Booking Cancelled — ' . ($property->name ?? 'Property');
+
+            // Admin notification
+            if ($adminTo) {
+                $adminHtml = view('mail.booking-cancel-admin-email', compact('data', 'property'))->render();
+                $this->emailService->sendRenderedHtml($adminHtml, $adminTo, $subject);
+            }
+
+            // Customer notification
+            if (! empty($booking->email)) {
+                $userHtml = view('mail.booking-cancel-user-email', compact('data', 'property'))->render();
+                $this->emailService->sendRenderedHtml($userHtml, $booking->email, $subject);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Booking cancel email failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

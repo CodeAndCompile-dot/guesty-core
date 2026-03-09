@@ -398,6 +398,138 @@
 
 ---
 
+## Phase 8 — Payment Module (Stripe + PayPal) ✅
+
+**Completed**: Stripe gateway, PayPal client-side capture, instalment tracking, receipt pages, front layout stubs.
+
+### New Files Created
+| File | Purpose |
+|------|---------|
+| `app/Services/Payment/StripeGateway.php` | Thin Stripe SDK wrapper (createCharge, createSetupIntent, createPaymentIntent) |
+| `app/Services/Payment/PaymentService.php` | Business logic: chargeStripe, recordPaypal, finalisePayment (instalment tracking), resolveAmount, findForReceipt |
+| `app/Http/Controllers/Payment/StripeController.php` | Stripe payment form + charge (index, store, getIntentData, paymentInit) |
+| `app/Http/Controllers/Payment/PaypalController.php` | PayPal form + client-side capture recording (index, verify) |
+| `app/Http/Controllers/Payment/ReceiptController.php` | Post-payment confirmation page (show) |
+| `app/Http/Requests/StripePaymentRequest.php` | Validates stripeToken + amount (min $0.50) |
+| `resources/views/front/booking/payment/stripe.blade.php` | Stripe card form with Stripe.js v2 tokenisation |
+| `resources/views/front/booking/payment/paypal.blade.php` | PayPal SDK Buttons with instalment schedule |
+| `resources/views/front/booking/payment/first-preview.blade.php` | Payment confirmation / receipt page |
+| `resources/views/front/layouts/master.blade.php` | Front layout shell (extends for all public pages) |
+| `resources/views/front/layouts/head.blade.php` | Head partial (Bootstrap 5.3, FontAwesome, jQuery) |
+| `resources/views/front/layouts/header.blade.php` | Header/navbar stub |
+| `resources/views/front/layouts/footer.blade.php` | Footer partial + Bootstrap JS |
+| `resources/views/front/layouts/banner.blade.php` | Breadcrumb banner section |
+| `tests/Unit/PaymentServiceTest.php` | 25 unit tests (Stripe mock, PayPal, instalments, iCal refresh) |
+| `tests/Feature/Payment/StripeControllerTest.php` | 9 feature tests (form, charge, validation, intent endpoints) |
+| `tests/Feature/Payment/PaypalControllerTest.php` | 6 feature tests (form, gateway redirect, verify) |
+| `tests/Feature/Payment/ReceiptControllerTest.php` | 3 feature tests (receipt display, 404 cases) |
+
+### Modified Files
+| File | Change |
+|------|--------|
+| `routes/web/public.php` | Added 7 payment routes (stripe form/charge, paypal form/verify, receipt, intent endpoints) |
+| `composer.json` | Added `stripe/stripe-php ^9.6` dependency |
+
+### Routes Added
+| Method | URI | Name |
+|--------|-----|------|
+| GET | `booking/payment/paypal/{id}` | `paypal` |
+| GET | `booking/payment/paypal/post/{id}` | `paypal.submit` |
+| GET | `booking/payment/{id}` | `stripe_payment` |
+| POST | `booking/payment/{id}` | `stripe.post` |
+| GET | `getIntendentData` | (unnamed) |
+| POST | `payment_init` | `payment_init` |
+| GET | `payment/success/{id}` | `payment.success` |
+
+### Architecture Improvements
+- **Service extraction**: All payment logic in PaymentService (legacy was split across 3 controllers + ModelHelper)
+- **StripeGateway wrapper**: Isolates Stripe SDK calls for easy mocking and future migration to PaymentIntents
+- **Instalment tracking**: `finalisePayment()` manages amount_data JSON, detects partial vs full payment
+- **Dual property model**: chargeStripe resolves GuestyProperty ?? Property; PayPal uses Property (matches legacy)
+- **Null-safety**: All `json_decode()` calls with `?? '[]'` fallback; `$setting_data['payment_currency'] ?? '$'`
+- **iCal refresh**: Automatic post-payment calendar refresh via ICalService
+- **Email stubs**: TODO Phase 9 placeholders in finalisePayment for admin + customer notifications
+
+---
+
+## Phase 9 — Email Automation & Scheduled Jobs ✅
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `app/Services/Communication/EmailService.php` | Central email dispatch — template-based + rendered HTML + blade view modes |
+| `app/Services/Communication/WelcomePackageService.php` | Sends welcome packages X days before check-in |
+| `app/Services/Communication/ReminderService.php` | Sends payment reminders (2-payment & 3-payment scenarios) |
+| `app/Services/Communication/ReviewRequestService.php` | Sends review requests X days after check-out |
+| `app/Console/Commands/SendWelcomePackagesCommand.php` | `email:welcome-packages` Artisan command |
+| `app/Console/Commands/SendRemindersCommand.php` | `email:reminders` Artisan command |
+| `app/Console/Commands/SendReviewRequestsCommand.php` | `email:review-requests` Artisan command |
+
+### Mail Blade Views (16)
+`resources/views/mail/`: dummyMail, booking-common-data, booking-first-admin, booking-first-customer, booking-confirmation-user-email, booking-cancel-admin-email, booking-cancel-user-email, welcome-package-admin, welcome-package-customer, reminder-admin-email, reminder-user-email, review-admin, review-customer, rental-aggrement-admin, booking-admin-email, booking-user-email
+
+### Integration Points
+- `BookingService` — injects EmailService for confirm + cancel emails
+- `PaymentService` — injects EmailService for payment confirmation emails
+- `ICalController` — injects 3 communication services for cron endpoints
+- `routes/console.php` — schedules 3 commands at 07:00, 07:30, 10:00 with `withoutOverlapping()`
+
+### Tests (31 tests, 45 assertions)
+| File | Tests |
+|------|-------|
+| `tests/Unit/Communication/EmailServiceTest.php` | 10 |
+| `tests/Unit/Communication/WelcomePackageServiceTest.php` | 5 |
+| `tests/Unit/Communication/ReminderServiceTest.php` | 6 |
+| `tests/Unit/Communication/ReviewRequestServiceTest.php` | 5 |
+| `tests/Feature/Console/ScheduledCommandsTest.php` | 5 |
+
+---
+
+## Phase 10 — Public Website & Final Cleanup ✅
+
+### Public Controllers (9)
+| Controller | Methods | Purpose |
+|------------|---------|---------|
+| `HomeController` | `index` | Homepage via CMS template dispatch |
+| `PageController` | `cmsPage`, `teamMember`, `vacation`, `blogSingle`, `blogCategory`, `attractionSingle`, `attractionCategory`, `attractionLocation`, `propertyLocation` | Dynamic slug resolution (CMS → LandingCMS → GuestyProperty → 404) |
+| `ContactController` | `store`, `propertyManagement` | Contact & property management forms with email notifications |
+| `OnboardingController` | `store` | Onboarding form with file uploads |
+| `NewsletterController` | `store` | AJAX newsletter subscription |
+| `ReviewController` | `store` | Creates testimonial record |
+| `BookingController` | (from Phase 7/8) | Booking flow: save, quote, preview, rental agreement |
+| `SitemapController` | `index` | XML sitemap generation |
+| `CaptchaController` | `reload` | AJAX captcha refresh |
+
+### Form Requests (6)
+| Request | Base | Required Fields |
+|---------|------|-----------------|
+| `PublicFormRequest` | FormRequest | Abstract base with Google reCAPTCHA validation |
+| `ContactFormRequest` | PublicFormRequest | name, email, message |
+| `PropertyManagementFormRequest` | PublicFormRequest | email, first_name |
+| `OnboardingFormRequest` | PublicFormRequest | email (+ optional file1/file2) |
+| `NewsletterRequest` | FormRequest | email (unique, JSON validation errors) |
+| `ReviewFormRequest` | FormRequest | name, email, message |
+
+### Front Blade Views Created
+- `front/group/single.blade.php` — Blog single post
+- `front/group/category.blade.php` — Blog category listing
+- `front/attractions/single.blade.php` — Attraction detail
+- `front/attractions/category.blade.php` — Attraction category listing
+- `front/attractions/location.blade.php` — Attractions by location
+- `front/property/location.blade.php` — Properties by location
+- `front/robots.blade.php` — robots.txt plain text
+
+### Routes (`routes/web/public.php`)
+All public routes wired: form POSTs, booking flow, utility (sitemap, robots, captcha), page routes with catch-all slug last.
+
+### Tests (32 tests, 83 assertions)
+| File | Tests |
+|------|-------|
+| `tests/Feature/Public/PublicPagesTest.php` | 20 (homepage, CMS pages, blog, attractions, team, vacation, sitemap, robots, captcha) |
+| `tests/Feature/Public/PublicFormsTest.php` | 12 (contact, property mgmt, onboarding, newsletter, review + validation) |
+
+---
+
 ## Test Summary
 
 | Phase | Tests | Assertions |
@@ -407,7 +539,10 @@
 | Phase 5 | +28 | +70 |
 | Phase 6 | +32 | +87 |
 | Phase 7 | +41 | +115 |
-| **Total** | **265** | **630** |
+| Phase 8 | +41 | +108 |
+| Phase 9 | +31 | +45 |
+| Phase 10 | +32 | +83 |
+| **Total** | **369** | **866** |
 
 All tests passing ✅
 
@@ -418,6 +553,6 @@ All tests passing ✅
 - [x] Phase 5 — Guesty PMS Integration (API service, admin controller, sync endpoints)
 - [x] Phase 6 — iCal, PriceLabs & Calendar (iCal parser, calendar controller, PriceLabs service)
 - [x] Phase 7 — Booking & Availability (booking flow, availability engine, guest management)
-- [ ] Phase 8 — Payment Module (Stripe integration, invoice generation)
-- [ ] Phase 9 — Email Automation & Scheduled Jobs (Mailable classes, queue jobs, scheduling)
-- [ ] Phase 10 — Public Website & Final Cleanup (front controllers, public routes, regression tests)
+- [x] Phase 8 — Payment Module (Stripe + PayPal gateways, instalment tracking, receipt pages)
+- [x] Phase 9 — Email Automation & Scheduled Jobs (EmailService, scheduled commands, mail views)
+- [x] Phase 10 — Public Website & Final Cleanup (front controllers, public routes, smoke tests)
