@@ -27,8 +27,9 @@ class ICalController extends Controller
     /**
      * Export website iCal events for a property to .ics file (identical to legacy getEventsICalObject).
      * Uses direct IcalEvent query + file write (matching legacy byte-for-byte).
+     * Also returns the .ics content as an HTTP response for external calendar subscriptions.
      */
-    public function getEventsICalObject(int $id): void
+    public function getEventsICalObject(int $id)
     {
         $events = IcalEvent::where(['event_type' => 'website', 'event_pid' => $id])->get();
 
@@ -62,6 +63,11 @@ class ICalController extends Controller
         }
 
         file_put_contents($dir.'/'.$file.'.ics', $icalObject);
+
+        return response($icalObject, 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'inline; filename="' . $file . '.ics"',
+        ]);
     }
 
     /**
@@ -142,5 +148,17 @@ class ICalController extends Controller
         $this->reviewRequestService->process();
 
         return redirect()->back()->with('success', 'Review requests sent');
+    }
+
+    /**
+     * Send payment-reminder emails for instalment bookings.
+     *
+     * Legacy: ICalController::sendReminderPackage() — was a public HTTP endpoint for cron.
+     */
+    public function sendReminderEmail()
+    {
+        $this->reminderService->process();
+
+        return redirect()->back()->with('success', 'Reminder emails sent');
     }
 }

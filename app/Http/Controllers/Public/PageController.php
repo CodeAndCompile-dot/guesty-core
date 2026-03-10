@@ -41,6 +41,11 @@ class PageController extends Controller
             $template = 'front.static.' . $data->templete;
             $ogimage  = $data->ogimage ?? '';
 
+            // Fallback to default template if specific template doesn't exist
+            if (! view()->exists($template)) {
+                $template = 'front.static.default';
+            }
+
             if ($data->templete === 'blogs') {
                 $blogs = Blog::orderBy('id', 'desc')->paginate(12);
 
@@ -71,6 +76,17 @@ class PageController extends Controller
         }
 
         abort(404);
+    }
+
+    /**
+     * Property detail page — redirects to the slug-based route (catch-all).
+     *
+     * Legacy: PageController::propertyDetail()
+     * The legacy method just does: return redirect($seo_url);
+     */
+    public function propertyDetail(string $seo_url)
+    {
+        return redirect($seo_url);
     }
 
     /**

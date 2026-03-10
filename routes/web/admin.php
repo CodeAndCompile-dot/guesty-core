@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\EmailTempleteController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GuestyPropertyController;
+use App\Http\Controllers\Admin\GuestySyncController;
 use App\Http\Controllers\Admin\LandingCmsController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MaximizeAssetController;
@@ -63,10 +64,11 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
     // Media Center
     Route::get('media-center', [DashboardController::class, 'mediaCenter'])->name('media-center');
     Route::post('new-file-uploads', [DashboardController::class, 'newFileUploads'])->name('new-file-uploads');
-    Route::post('medias-destroy', [DashboardController::class, 'mediasDelete'])->name('medias-destroy');
+    Route::match(['post', 'delete'], 'medias-destroy', [DashboardController::class, 'mediasDelete'])->name('medias-destroy');
 
-    // Bulk Delete
+    // Bulk Delete (legacy URI alias + current)
     Route::post('multipleDelete/{model}', [DashboardController::class, 'multipleDelete'])->name('multipleDelete');
+    Route::post('multiple-delete/{model}', [DashboardController::class, 'multipleDelete']);
 
     // Password Change
     Route::get('change-password', [DashboardController::class, 'changePassword'])->name('change-password');
@@ -265,17 +267,16 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
     // AJAX: Sub-location list for Guesty property edit
     Route::post('getSubLocationList', [GuestyPropertyController::class, 'getSubLocationList'])->name('getSubLocationList');
 
-    // Guesty sync/token stub routes (referenced by add-bar partial buttons)
-    // These will be fully implemented in Phase 5 integration; for now they redirect back.
-    Route::get('set-getPropertyData', fn () => redirect()->back()->with('success', 'Property sync triggered'))
+    // Guesty sync/token routes (referenced by add-bar partial buttons)
+    Route::get('set-getPropertyData', [GuestySyncController::class, 'syncProperties'])
         ->name('set-getPropertyData');
-    Route::get('set-getBookingData', fn () => redirect()->back()->with('success', 'Booking sync triggered'))
+    Route::get('set-getBookingData', [GuestySyncController::class, 'syncBookings'])
         ->name('set-getBookingData');
-    Route::get('get-reviews-data', fn () => redirect()->back()->with('success', 'Review sync triggered'))
+    Route::get('get-reviews-data', [GuestySyncController::class, 'syncReviews'])
         ->name('get-reviews-data');
-    Route::get('set-getToken', fn () => redirect()->back()->with('success', 'Open API token refreshed'))
+    Route::get('set-getToken', [GuestySyncController::class, 'refreshToken'])
         ->name('set-getToken');
-    Route::get('getBookingToken', fn () => redirect()->back()->with('success', 'Booking token refreshed'))
+    Route::get('getBookingToken', [GuestySyncController::class, 'refreshBookingToken'])
         ->name('getBookingToken');
 
     /*
@@ -287,11 +288,10 @@ Route::middleware(['auth'])->prefix('client-login')->group(function () {
     Route::post('get-checkin-checkout-data-gaurav', [BookingRequestController::class, 'getCheckinCheckoutDataGaurav'])
         ->name('get-checkin-checkout-data-gaurav');
 
-    // AJAX: quote calculation stubs (referenced by booking create/edit blade views)
-    // Will be fully implemented in Phase 10 (PageController); for now they return empty JSON.
-    Route::post('admin-checkajax-get-quote', fn () => response()->json([]))
+    // AJAX: quote calculation (admin booking create/edit views)
+    Route::post('admin-checkajax-get-quote', [BookingRequestController::class, 'adminCheckAjaxGetQuoteData'])
         ->name('admin-checkajax-get-quote');
-    Route::post('admin-checkajax-get-quote-edit', fn () => response()->json([]))
+    Route::post('admin-checkajax-get-quote-edit', [BookingRequestController::class, 'adminCheckAjaxGetQuoteDataEdit'])
         ->name('admin-checkajax-get-quote-edit');
 
     // Must be registered BEFORE the resource route so they don't clash

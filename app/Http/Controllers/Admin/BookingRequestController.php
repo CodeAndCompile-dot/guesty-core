@@ -168,4 +168,128 @@ class BookingRequestController extends Controller
         return redirect()->route('singlePropertyBookoing', $result['property_id'])
             ->with('success', 'Successfully send');
     }
+
+    /* ------------------------------------------------------------------ */
+    /*  AJAX: Admin quote calculation                                      */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * POST admin-checkajax-get-quote
+     *
+     * Legacy: PageController::adminCheckAjaxGetQuoteData()
+     * Uses Helper::getGrossAmountData() for non-Guesty Property rates.
+     */
+    public function adminCheckAjaxGetQuoteData(Request $request): JsonResponse
+    {
+        if (! $request->property_id) {
+            return response()->json(['message' => 'Property Not select', 'status' => 400]);
+        }
+
+        $property = \App\Models\Property::find($request->property_id);
+
+        if (! $request->start_date) {
+            return response()->json(['message' => 'Invalid Checkin', 'status' => 400]);
+        }
+
+        if (! $request->end_date) {
+            return response()->json(['message' => 'Invalid Checkout', 'status' => 400]);
+        }
+
+        $main_data = \Helper::getGrossAmountData($property, $request->start_date, $request->end_date);
+
+        if ($main_data['status'] === true || $main_data['status'] === 'true') {
+            $main_data['start_date']           = $request->get('start_date');
+            $main_data['end_date']             = $request->get('end_date');
+            $main_data['adults']               = $request->get('adults');
+            $main_data['child']                = $request->get('childs');
+            $main_data['childs']               = $request->get('childs');
+            $main_data['pet_fee_data_guarav']  = $request->get('pet_fee_data_guarav');
+            $main_data['heating_pool_fee']     = $request->get('heating_pool_fee_data_guarav');
+            $main_data['total_guests']         = (int) $request->get('adults') + (int) $request->get('childs');
+            $main_data['extra_discount']       = $request->get('extra_discount');
+
+            $data_view = view('admin.common.get-quote', compact('main_data', 'property'))->render();
+
+            return response()->json(['message' => 'success', 'status' => 200, 'data_view' => $data_view]);
+        }
+
+        if ($main_data['status'] === 'already-booked') {
+            return response()->json(['message' => 'Already booked some date', 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'checkin-checkout-day') {
+            return response()->json(['message' => $main_data['message'], 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'min-stay-day') {
+            return response()->json(['message' => 'Minimum stay is not statisfy', 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'date-price') {
+            return response()->json(['message' => 'Price is not defined', 'status' => 400]);
+        }
+
+        return response()->json(['message' => 'Invalid Calling', 'status' => 400, 'message1' => $main_data['status']]);
+    }
+
+    /**
+     * POST admin-checkajax-get-quote-edit
+     *
+     * Legacy: PageController::adminCheckAjaxGetQuoteDataEdit()
+     * Same as adminCheckAjaxGetQuoteData but renders the edit version and includes coupon fields.
+     */
+    public function adminCheckAjaxGetQuoteDataEdit(Request $request): JsonResponse
+    {
+        if (! $request->property_id) {
+            return response()->json(['message' => 'Property Not select', 'status' => 400]);
+        }
+
+        $property = \App\Models\Property::find($request->property_id);
+
+        if (! $request->start_date) {
+            return response()->json(['message' => 'Invalid Checkin', 'status' => 400]);
+        }
+
+        if (! $request->end_date) {
+            return response()->json(['message' => 'Invalid Checkout', 'status' => 400]);
+        }
+
+        $main_data = \Helper::getGrossAmountData($property, $request->start_date, $request->end_date);
+
+        if ($main_data['status'] === true || $main_data['status'] === 'true') {
+            $main_data['start_date']             = $request->get('start_date');
+            $main_data['end_date']               = $request->get('end_date');
+            $main_data['adults']                 = $request->get('adults');
+            $main_data['child']                  = $request->get('childs');
+            $main_data['childs']                 = $request->get('childs');
+            $main_data['pet_fee_data_guarav']    = $request->get('pet_fee_data_guarav');
+            $main_data['heating_pool_fee']       = $request->get('heating_pool_fee_data_guarav');
+            $main_data['total_guests']           = (int) $request->get('adults') + (int) $request->get('childs');
+            $main_data['extra_discount']         = $request->get('extra_discount');
+            $main_data['coupon_discount']        = $request->get('coupon_discount');
+            $main_data['coupon_discount_code']   = $request->get('coupon_discount_code');
+
+            $data_view = view('admin.common.get-quote-edit', compact('main_data', 'property'))->render();
+
+            return response()->json(['message' => 'success', 'status' => 200, 'data_view' => $data_view]);
+        }
+
+        if ($main_data['status'] === 'already-booked') {
+            return response()->json(['message' => 'Already booked some date', 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'min-stay-day') {
+            return response()->json(['message' => 'Minimum stay is not statisfy', 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'date-price') {
+            return response()->json(['message' => 'Price is not defined', 'status' => 400]);
+        }
+
+        if ($main_data['status'] === 'checkin-checkout-day') {
+            return response()->json(['message' => $main_data['message'], 'status' => 400]);
+        }
+
+        return response()->json(['message' => 'Invalid Calling', 'status' => 400]);
+    }
 }

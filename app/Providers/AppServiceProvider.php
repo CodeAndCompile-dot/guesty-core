@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Facades\GuestyApi as GuestyApiFacade;
 use App\Facades\Helper;
 use App\Facades\LiveCart as LiveCartFacade;
 use App\Facades\ModelHelper;
+use App\Helpers\GuestyApi as GuestyApiImpl;
 use App\Helpers\Helper as HelperImpl;
 use App\Helpers\LiveCart as LiveCartImpl;
 use App\Helpers\ModelHelper as ModelHelperImpl;
@@ -21,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('ModelHelper', fn () => new ModelHelperImpl());
         $this->app->bind('Helper', fn () => new HelperImpl());
         $this->app->bind('LiveCart', fn ($app) => $app->make(LiveCartImpl::class));
+        $this->app->bind('GuestyApi', fn ($app) => $app->make(GuestyApiImpl::class));
     }
 
     /**
@@ -32,5 +35,6 @@ class AppServiceProvider extends ServiceProvider
         $loader->alias('ModelHelper', ModelHelper::class);
         $loader->alias('Helper', Helper::class);
         $loader->alias('LiveCart', LiveCartFacade::class);
+        $loader->alias('GuestyApi', GuestyApiFacade::class);
     }
 }

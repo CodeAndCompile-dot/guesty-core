@@ -10,6 +10,7 @@
 |
 */
 
+use App\Http\Controllers\Admin\GuestySyncController;
 use App\Http\Controllers\ICalController;
 use App\Http\Controllers\Payment\PaypalController;
 use App\Http\Controllers\Payment\ReceiptController;
@@ -37,6 +38,21 @@ Route::get('refresh-calendar-data', [ICalController::class, 'refresshCalendar'])
 Route::get('set-pricelab', [ICalController::class, 'setPriceLab'])->name('setPriceLab');
 Route::get('send-welcome-packages', [ICalController::class, 'sendWelcomePackage'])->name('sendWelcomePackage');
 Route::get('send-review-email', [ICalController::class, 'sendReviewEmail'])->name('sendReviewEmail');
+Route::get('send-reminder-email', [ICalController::class, 'sendReminderEmail']);
+Route::get('ical/{id}', [ICalController::class, 'getEventsICalObject']);
+
+/*
+|--------------------------------------------------------------------------
+| Legacy Guesty Sync Endpoints (public, no auth — used by external crons)
+|--------------------------------------------------------------------------
+| In legacy these were public routes. The new system also has auth-protected
+| versions under /client-login/ for the admin UI buttons.
+*/
+Route::get('set-getPropertyData', [GuestySyncController::class, 'syncProperties']);
+Route::get('set-getBookingData', [GuestySyncController::class, 'syncBookings']);
+Route::get('get-reviews-data', [GuestySyncController::class, 'syncReviews']);
+Route::get('set-token', [GuestySyncController::class, 'refreshToken']);
+Route::get('getBookingToken', [GuestySyncController::class, 'refreshBookingToken']);
 
 /*
 |--------------------------------------------------------------------------
@@ -100,6 +116,7 @@ Route::get('vacation/{seo_url}', [PageController::class, 'vacation']);
 Route::get('blog/{seo_url}', [PageController::class, 'blogSingle']);
 Route::get('blogs/category/{seo_url}', [PageController::class, 'blogCategory']);
 Route::get('properties/location/{seo_url}', [PageController::class, 'propertyLocation']);
+Route::get('properties/detail/{seo_url}', [PageController::class, 'propertyDetail']);
 Route::get('attractions/detail/{seo_url}', [PageController::class, 'attractionSingle']);
 Route::get('attractions/location/{seo_url}', [PageController::class, 'attractionLocation']);
 Route::get('attractions/category/{seo_url}', [PageController::class, 'attractionCategory']);

@@ -103,4 +103,36 @@ class ModelHelper
     {
         return AttractionCategory::pluck('name', 'id')->toArray();
     }
+
+    /* ------------------------------------------------------------------ */
+    /*  Display helpers (legacy parity)                                    */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Return CSS display style for pet fee visibility.
+     *
+     * Legacy: ModelHelper::showPetFee()
+     */
+    public function showPetFee($pet_fee): string
+    {
+        if ($pet_fee && $pet_fee > 0) {
+            return 'display:block;';
+        }
+
+        return 'display:none;';
+    }
+
+    /**
+     * Return CSS display style for pool fee visibility.
+     *
+     * Legacy: ModelHelper::showpoolFee()
+     */
+    public function showpoolFee($pet_fee): string
+    {
+        if ($pet_fee && $pet_fee > 0) {
+            return 'display:block;';
+        }
+
+        return 'display:none;';
+    }
 }
