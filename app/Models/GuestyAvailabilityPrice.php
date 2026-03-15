@@ -16,9 +16,12 @@ class GuestyAvailabilityPrice extends Model
         'status',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'price'      => 'float',
-        'minNights'  => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'price'      => 'float',
+            'minNights'  => 'integer',
+        ];
+    }
 }

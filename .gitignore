@@ -19,8 +19,6 @@
 /public/front
 /public/uploads
 /public/vendor
-/public/toastr
-/public/datepicker
 /storage/*.key
 /storage/pail
 /vendor

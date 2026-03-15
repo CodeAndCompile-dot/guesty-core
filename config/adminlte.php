@@ -200,7 +200,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'admin',
+    'dashboard_url' => 'client-login',
     'logout_url' => 'logout',
     'login_url' => 'client-login',
     'register_url' => false,
@@ -252,7 +252,7 @@ return [
         // Sidebar items:
 
 
-        // ["text"=>"Admin Users","url"=>"client-login/users","permission"=>"admin",'icon' => 'fas fa-fw fa-users'],
+        ["text"=>"Admin Users","url"=>"client-login/users","permission"=>"admin",'icon' => 'fas fa-fw fa-users'],
         ["text"=>"Pages","url"=>"client-login/cms","permission"=>"admin",'icon' => 'fas fa-fw fa-user'],
 
 

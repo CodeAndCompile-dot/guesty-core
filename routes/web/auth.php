@@ -23,6 +23,11 @@ Route::get('login', function () {
     abort(404);
 });
 
+// Redirect /admin to /client-login for compatibility
+Route::get('admin', function () {
+    return redirect('/client-login');
+});
+
 // Custom login at /client-login/login — this MUST be named 'login'
 // so the auth middleware can redirect to it
 Route::middleware('guest')->group(function () {

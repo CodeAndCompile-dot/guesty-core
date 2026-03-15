@@ -91,26 +91,29 @@ class Property extends Model
         'pet_fee_type',
     ];
 
-    protected $casts = [
-        'location_id'  => 'integer',
-        'bedroom'      => 'integer',
-        'bathroom'     => 'integer',
-        'beds'         => 'integer',
-        'sleeps'       => 'integer',
-        'full_bath'    => 'integer',
-        'half_bath'    => 'integer',
-        'cleaning_fee' => 'decimal:2',
-        'heating_swimming_pool_fee' => 'decimal:2',
-        'refundable_damage_fee'     => 'decimal:2',
-        'tax'          => 'decimal:2',
-        'propane_gas'  => 'decimal:2',
-        'min_stay'     => 'integer',
-        'standard_rate' => 'integer',
-        'king_beds'    => 'integer',
-        'queen_beds'   => 'integer',
-        'ordering'     => 'integer',
-        'heating_pool_fee' => 'float',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'location_id'  => 'integer',
+            'bedroom'      => 'integer',
+            'bathroom'     => 'integer',
+            'beds'         => 'integer',
+            'sleeps'       => 'integer',
+            'full_bath'    => 'integer',
+            'half_bath'    => 'integer',
+            'cleaning_fee' => 'decimal:2',
+            'heating_swimming_pool_fee' => 'decimal:2',
+            'refundable_damage_fee'     => 'decimal:2',
+            'tax'          => 'decimal:2',
+            'propane_gas'  => 'decimal:2',
+            'min_stay'     => 'integer',
+            'standard_rate' => 'integer',
+            'king_beds'    => 'integer',
+            'queen_beds'   => 'integer',
+            'ordering'     => 'integer',
+            'heating_pool_fee' => 'float',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

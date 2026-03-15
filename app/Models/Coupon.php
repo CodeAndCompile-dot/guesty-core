@@ -21,9 +21,12 @@ class Coupon extends Model
         'property_id',
     ];
 
-    protected $casts = [
-        'property_id' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'property_id' => 'integer',
+        ];
+    }
 
     public function property(): BelongsTo
     {

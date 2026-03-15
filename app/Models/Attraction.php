@@ -30,9 +30,12 @@ class Attraction extends Model
         'category_id',
     ];
 
-    protected $casts = [
-        'ordering' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'ordering' => 'integer',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

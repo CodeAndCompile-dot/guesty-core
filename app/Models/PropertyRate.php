@@ -31,12 +31,15 @@ class PropertyRate extends Model
         'rate_group_id',
     ];
 
-    protected $casts = [
-        'single_date'           => 'date',
-        'single_date_timestamp' => 'integer',
-        'price'                 => 'decimal:2',
-        'base_price'            => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'single_date'           => 'date',
+            'single_date_timestamp' => 'integer',
+            'price'                 => 'decimal:2',
+            'base_price'            => 'decimal:2',
+        ];
+    }
 
     public function property(): BelongsTo
     {

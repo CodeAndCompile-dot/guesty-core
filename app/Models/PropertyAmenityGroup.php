@@ -21,9 +21,12 @@ class PropertyAmenityGroup extends Model
         'sorting',
     ];
 
-    protected $casts = [
-        'sorting' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'sorting' => 'integer',
+        ];
+    }
 
     public function property(): BelongsTo
     {

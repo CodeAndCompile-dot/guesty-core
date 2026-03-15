@@ -10,9 +10,4 @@ class ConfirmPasswordController extends Controller
     use ConfirmsPasswords;
 
     protected $redirectTo = '/client-login/guesty_properties';
-
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 }

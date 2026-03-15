@@ -34,10 +34,13 @@ class Location extends Model
         'ordering',
     ];
 
-    protected $casts = [
-        'ordering' => 'integer',
-        'is_parent' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'ordering' => 'integer',
+            'is_parent' => 'integer',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

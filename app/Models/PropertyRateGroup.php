@@ -42,21 +42,24 @@ class PropertyRateGroup extends Model
         'base_min_stay',
     ];
 
-    protected $casts = [
-        'start_date'           => 'date',
-        'end_date'             => 'date',
-        'start_date_timestamp' => 'integer',
-        'end_date_timestamp'   => 'integer',
-        'price'                => 'decimal:2',
-        'base_price'           => 'decimal:2',
-        'monday_price'         => 'float',
-        'tuesday_price'        => 'float',
-        'wednesday_price'      => 'float',
-        'thrusday_price'       => 'float',
-        'friday_price'         => 'float',
-        'saturday_price'       => 'float',
-        'sunday_price'         => 'float',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'start_date'           => 'date',
+            'end_date'             => 'date',
+            'start_date_timestamp' => 'integer',
+            'end_date_timestamp'   => 'integer',
+            'price'                => 'decimal:2',
+            'base_price'           => 'decimal:2',
+            'monday_price'         => 'float',
+            'tuesday_price'        => 'float',
+            'wednesday_price'      => 'float',
+            'thrusday_price'       => 'float',
+            'friday_price'         => 'float',
+            'saturday_price'       => 'float',
+            'sunday_price'         => 'float',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

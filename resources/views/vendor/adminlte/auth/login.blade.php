@@ -21,13 +21,42 @@
 @section('auth_header', __('adminlte::adminlte.login_message'))
 
 @section('auth_body')
-    <form action="{{ $login_url }}" method="post">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle"></i> {{ session('info') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    <form action="{{ $login_url }}" method="post" autocomplete="off">
         @csrf
 
         {{-- Email field --}}
         <div class="input-group mb-3">
-            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
+            <input type="email" name="email" id="login-email" class="form-control @error('email') is-invalid @enderror"
+                   value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus 
+                   autocomplete="chrome-off" readonly onfocus="this.removeAttribute('readonly');">
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -44,8 +73,9 @@
 
         {{-- Password field --}}
         <div class="input-group mb-3">
-            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                   placeholder="{{ __('adminlte::adminlte.password') }}">
+            <input type="password" name="password" id="login-password" class="form-control @error('password') is-invalid @enderror"
+                   placeholder="{{ __('adminlte::adminlte.password') }}" 
+                   autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');">
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -101,4 +131,16 @@
             </a>
         </p>
     @endif
+@stop
+
+@section('js')
+<script>
+    // Prevent browser autofill on page load
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+        }, 100);
+    });
+</script>
 @stop

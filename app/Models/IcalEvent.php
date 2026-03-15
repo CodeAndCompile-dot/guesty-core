@@ -21,10 +21,13 @@ class IcalEvent extends Model
         'booking_status',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date'   => 'date',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

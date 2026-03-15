@@ -71,10 +71,13 @@ class GuestyProperty extends Model
         'cancellation_policy',
     ];
 
-    protected $casts = [
-        'guests'   => 'integer',
-        'ordering' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'guests'   => 'integer',
+            'ordering' => 'integer',
+        ];
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Relationships                                                      */

@@ -12,7 +12,7 @@
         <div class="form-group">
             
             {!! Form::label("email") !!}
-            {!! Form::email("email",null,["class"=>"form-control"]) !!}
+            {!! Form::email("email",null,["class"=>"form-control","autocomplete"=>"off"]) !!}
             <span class="text-danger">{{ $errors->first("email")}}</span>
             
         </div>
@@ -21,7 +21,7 @@
         <div class="form-group">
             
             {!! Form::label("password") !!}
-            {!! Form::password("password",["class"=>"form-control"]) !!}
+            {!! Form::password("password",["class"=>"form-control","autocomplete"=>"new-password"]) !!}
             <span class="text-danger">{{ $errors->first("password")}}</span>
             
         </div>
