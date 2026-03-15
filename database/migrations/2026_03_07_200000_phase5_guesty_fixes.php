@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,14 +24,29 @@ return new class extends Migration
         Schema::table('guesty_availablity_prices', function (Blueprint $table) {
             $table->date('start_date')->nullable()->change();
             $table->string('listingId')->nullable()->change();
-            $table->index(['listingId', 'start_date'], 'guesty_avail_prices_listing_date_index');
         });
 
+        // Add index only if it doesn't already exist
+        $indexExists = collect(DB::select("SHOW INDEX FROM guesty_availablity_prices WHERE Key_name = 'guesty_avail_prices_listing_date_index'"))->isNotEmpty();
+        if (! $indexExists) {
+            Schema::table('guesty_availablity_prices', function (Blueprint $table) {
+                $table->index(['listingId', 'start_date'], 'guesty_avail_prices_listing_date_index');
+            });
+        }
+
         Schema::table('guesty_properties', function (Blueprint $table) {
-            $table->integer('sub_location_id')->nullable()->after('location_id');
-            $table->string('rental_aggrement_attachment')->nullable();
-            $table->string('rental_aggrement_status')->nullable();
-            $table->text('signature')->nullable();
+            if (! Schema::hasColumn('guesty_properties', 'sub_location_id')) {
+                $table->integer('sub_location_id')->nullable()->after('location_id');
+            }
+            if (! Schema::hasColumn('guesty_properties', 'rental_aggrement_attachment')) {
+                $table->string('rental_aggrement_attachment')->nullable();
+            }
+            if (! Schema::hasColumn('guesty_properties', 'rental_aggrement_status')) {
+                $table->string('rental_aggrement_status')->nullable();
+            }
+            if (! Schema::hasColumn('guesty_properties', 'signature')) {
+                $table->text('signature')->nullable();
+            }
         });
     }
 

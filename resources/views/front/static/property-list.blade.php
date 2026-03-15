@@ -10,35 +10,18 @@
     {!! $data->footer_section !!}
 @stop
 @section("container")
-@php
+    @php
         $name=$data->name;
         $bannerImage=asset('front/images/breadcrumb.webp');
         if($data->bannerImage){
             $bannerImage=asset($data->bannerImage);
         }
     @endphp
-<div class="banner">
-    <div class="c-hero__background">
-        <img class="img-fluid" src="{{ $bannerImage }}" title="{{ $name }}" alt="{{ $name }}">    
-    </div>
-    <div class="guides">
-        <h1 class="c-hero__title">{{$name}}</h1>
-    </div>
-</div>
-<div class="breadcrumb-wrap">
-    <div class="container">
-        <div class="breadcrumb single-breadcrumb">
-            <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i>Home </a>
-            <a href="{{ url('properties') }}"> <i class="fa-solid fa-chevron-right"></i> Properties </a>
-            <span><i class="fa-solid fa-chevron-right"></i></span> {{$name}}
-        </div>
-    </div>
-</div>
-<div class="search-bar pro-search" id="check">
+   
+<div class="search-bar mt-md-5" id="check">
     <div class="container">
         <form method="get" action="{{ url('properties')}}">
             <div class="row">
-              
                <div class="col-6 md-12 sm-12 icns mb-lg-0 position-relative  datepicker-section datepicker-common-2 main-check">
                             <div class="row">
                                 <div class="check left icns mb-lg-0 position-relative datepicker-common-2 col-md-6">
@@ -54,8 +37,8 @@
                                 </div>
                             </div>
                     </div>
-                    
-                    
+
+
             <div class="col-3 md-12 sm-12 guest">
                     <input type="text" name="Guests"   value="{{ Request::get('Guests') ?? '' }}" readonly="" class="form-control gst" id="show-target-data" placeholder="Guests">
                     <i class="fa-solid fa-users "></i>
@@ -63,7 +46,7 @@
                     <input type="hidden" value="{{ Request::get('child') ?? '0' }}"  name="child" id="child-data" />
                     <div class="adult-popup" id="guestsss">
                         <i class="fa fa-times close1"></i>
-                        <div class="adult-box">
+                        <div class="adult-box pt-3">
                             <p id="adults-data-show"><span>@if(Request::get('adults'))
                                                                 @if(Request::get('adults')>1)
                                                                     {{ Request::get('adults') }} Adults
@@ -97,9 +80,14 @@
                     </div>
                 </div>
                 <div class="col-3 md-12 sm-12 srch-btn">
-                    <button type="submit" class="main-btn ">Check Availability</button>
+                    <button type="submit" class="main-btn w-100">
+                        <div class="search-button-content">
+                            <i class="fa-solid fa-search"></i>
+                            <span>Search</span>
+                        </div>
+                    </button>
                 </div>
-            </div>   
+            </div>
         </form>
     </div>
  </div>
@@ -126,48 +114,23 @@
             $list->whereIn("_id",$ids);
         }
     }
-    if($total_sleep>0)
-    $list->where("accommodates",">=",$total_sleep);
-    $list->where("status","true");
+    if(Request::get("location_id")){
+        $list->where('location_id', (int)Request::get("location_id"));
+    }
+    if($total_sleep>0){
+        $list->where("accommodates",">=",$total_sleep);
+    }
     $list->where("active","1");
-    $list->where("sub_location_id",$data->id);
     $list=$list->orderBy("id","desc")->paginate(1000);
 @endphp
-<a href="#check" class="sticky main-btn book1 check"><span class="button-text">CHECK AVAILABILITY</span></a>
-
-
-@if(App\Models\Location::where("is_parent",$data->id)->count()>0)
-<section class="featured-pro" id="abt">
-	<div class="container">
-		<div class="head-sec">
-			<h2>Our Locations</h2>
-		</div>
-		<div class="row">
-			@php $i=1;@endphp
-			@foreach(App\Models\Location::where("is_parent",$data->id)->orderBy("id","desc")->get() as $c)
-			<div class="col-lg-6 col-md-6 col-12 main-prop">
-				<div class="prop-contt">
-					<div class="pro-img">
-						@if($c->image)<img src="{!! asset($c->image) !!}" class="img-fluid" alt="{{$c->name}}">@endif
-					</div>
-					<div class="pro-cont">
-						<h3 class="title">{{$c->name}}</h3>
-						<div class="line"></div>
-					</div>
-					<a href="{{ url('properties/location/'.$c->seo_url) }}"></a>
-				</div>
-			</div>
-			@php $i++;@endphp
-			@endforeach
-		</div>
-	</div>
-</section>
-@else
-
-
-<section class="home-list ">
+<a href="#check" class="sticky main-btn book1 check"><span class="button-text">Book Now</span></a>
+<section class="home-list properties-section">
    <div class="container">
-      <div class="how-we-value-heading"></div>
+      <div class="section-header my-5">
+         <h2 class="section-title">Our Properties</h2>
+         <p class="section-subtitle">Where you stay matters; enjoy our hand-picked selection of places to stay in and around Bentonville, AR,</p>
+         <p class="section-subtitle">that gives you access to world-class Mountain Biking, incredible dining, small-town charm, and more! From luxury to affordability find your base camp in Northwest Arkansas today!</p>
+      </div>
       <div class="row">
          @forelse($list as $c)
          @php
@@ -181,61 +144,64 @@
              $prices=json_decode($c->prices,true);
              $address=json_decode($c->address,true);
          @endphp
-         <div class="col-lg-4 col-md-6 col-12">
-            <div class="pro-img">
-                @isset($picture['original'])
-                    <a href="{{ url($c->seo_url).'?'.http_build_query(request()->all()) }}"><img src="{{$picture['original']}}" class="img-fluid" alt="{{$picture['caption'] ?? ''}}"></a>
-                @endisset
-                @isset($prices['basePrice'])
-                    <h5><span>{{ $currency }}  {{$prices['basePrice']}}</span> / Night</h5>
-                @endif
-               <div class="featured">
-                  <span>{{$c->propertyType}}</span>
+         <div class="col-lg-4 col-md-6">
+            <div class="property-card">
+               <div class="property-image">
+                  @isset($picture['original'])
+                     <a href="{{ url($c->seo_url).'?'.http_build_query(request()->all()) }}">
+                        <img src="{{$picture['original']}}" alt="{{$picture['caption'] ?? $c->title}}">
+                     </a>
+                  @endisset
+                  <div class="featured">
+                     <span>{{$c->propertyType}}</span>
+                  </div>
                </div>
-            </div>
-            <div class="pro-cont">
-               <div class="rating">
-                    <span class="rating-count"><i class="fa-solid fa-star checked"></i><i class="fa-solid fa-star checked"></i><i class="fa-solid fa-star checked"></i><i class="fa-solid fa-star checked"></i><i class="fa-solid fa-star checked"></i></span>
-               </div>
-               <h3 class="title"><a href="{{ url($c->seo_url).'?'.http_build_query(request()->all()) }}">{{$c->title}}</a></h3>
-               @isset($address['full'])
-               <p class="adr"><i class="fa-solid fa-location-dot"></i>{{$address['full']}}</p>
-               @endisset
-               <div class="amn">
-                  <ul class="first">
-                     <li><i class="fa-solid fa-bed"></i> {{ $c->bedrooms }} Bedrooms</li>
-                     <li>|</li>
-                     <li><i class="fa-solid fa-bath"></i> {{ $c->bathrooms }} Bathrooms</li>
-                     <li>|</li>
-                     @isset($c->accommodates)
-                        <li><i class="fa-solid fa-users"></i> {{ $c->accommodates }} Guests</li>
+               <div class="property-content">
+                <h3 class="property-title">
+    <a href="{{ url($c->seo_url) . '?' . http_build_query(request()->all()) }}">
+                {{ \Illuminate\Support\Str::limit($c->title, 40) }}
+       
+    </a>
+</h3>
+                  <p class="property-description">  {{ \Illuminate\Support\Str::limit($c->summary, 40) }}</p>
+                  @isset($prices['basePrice'])
+                     <p class="property-price">Starting at {{ $currency }} {{$prices['basePrice']}} / night</p>
+                  @endisset
+                  <div class="property-details">
+                     @isset($address['full'])
+                     <div class="property-detail">
+                        <i class="fa-solid fa-map-marker-alt"></i>
+                        <span>{{$address['full']}}</span>
+                     </div>
                      @endisset
-                  </ul>
+                  </div>
+                  <div class="property-details mt-3" style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
+                     <div class="property-detail">
+                        <i class="fa-solid fa-users"></i>
+                        <span>{{$c->accommodates}} {{$c->accommodates>1?'guests':'guest'}}</span>
+                     </div>
+                     <div class="property-detail">
+                        <i class="fa-solid fa-bed"></i>
+                        <span>{{$c->bedrooms}} {{$c->bedrooms>1?'beds':'bed'}}</span>
+                     </div>
+                     <div class="property-detail">
+                        <i class="fa-solid fa-bath"></i>
+                        <span>{{$c->bathrooms}} {{$c->bathrooms>1?'baths':'bath'}}</span>
+                     </div>
+                  </div>
                </div>
-               <a href="{{ url($c->seo_url).'?'.http_build_query(request()->all()) }}">
-                  <div class="view">
-                     View More 
-               <a href="{{ url($c->seo_url).'?'.http_build_query(request()->all()) }}" class="forward"><i class="fa-solid fa-arrow-right"></i></a>
-               </div></a>
             </div>
          </div>
-             @empty
+         @empty
          <div class="col-12 col-md-12 col-sm-12">
-                No result found
-             </div>
-         @endforelse
-      </div>
-      <div class="pro">
-        
-            <div class="col-md-12 text-center">
-                {{ $list->appends(request()->all())}}
+            <div class="alert alert-info">
+               No properties found matching your criteria.
             </div>
+         </div>
+         @endforelse
       </div>
    </div>
 </section>
-      
-@endif
-
 
 @stop
 
@@ -244,11 +210,295 @@
     <link rel="stylesheet" href="{{ asset('front')}}/css/property-list.css" />
     <link rel="stylesheet" href="{{ asset('front')}}/css/property-list-responsive.css" />
     <link rel="stylesheet" type="text/css" href="{{ asset('datepicker') }}/dist/css/hotel-datepicker.css"/>
-<link rel="stylesheet" href="{{ asset('front')}}/css/datepicker.css" />
-@stop 
+    <link rel="stylesheet" href="{{ asset('front')}}/css/datepicker.css" />
+    
+    <style>
+    .search-bar {
+        position: relative;
+        z-index: 10;
+    }
+    .search-bar .col-3  {
+        width: 30%;
+    }
+    .search-bar form {
+        position: sticky;
+        background: white;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    div#guestsss {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 15px;
+    }
+    
+    .main-btn {
+        background: #000;
+        color: white;
+        border-radius: 10px !important;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .main-btn:hover {
+        background: #000;
+        color: white;
+        
+    }
+    
+    .search-bar button.main-btn.close111 {
+        background: black;
+        color: white;
+        border-radius: 50px;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .search-bar .srch-btn {
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .search-button-content i {
+        margin-right: 10px;
+    }
+    
+    .search-button-content span {
+        font-weight: 500;
+    }
+    
+    .search-bar .col-6 {
+        padding-right: 10px;
+    }
+    
+    .search-bar .col-3.guest {
+        padding-right: 10px;
+    }
+    
+    @media (max-width: 991px) {
+        .search-bar form {
+            max-width: 95%;
+            padding: 15px;
+        }
+        
+        .col-6.md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .col-3.md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .search-bar form {
+            padding: 12px;
+        }
+        
+        .search-bar .row > div {
+            margin-bottom: 12px;
+        }
+        
+        .search-bar .srch-btn {
+            padding-top: 5px;
+        }
+        
+        .main-btn {
+            height: 42px;
+        }
+    }
+        /* Property Card Styles */
+        .property-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .property-image {
+            height: 375px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .property-card:hover .property-image img {
+            transform: scale(1.05);
+        }
+
+        .property-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        .property-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #000000;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .property-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .property-description {
+            color: #707070;
+            margin-bottom: 10px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .property-price {
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .property-details {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .property-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .featured {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            background: #000000;
+            color: #FFFFFF;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 5;
+        }
+
+        /* Properties Section */
+        .properties-section {
+            padding-bottom: 80px;
+            padding-top: 40px;
+            background: #F5F5F5;
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #000000;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            color: #707070;
+            font-size: 1rem;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+         @media (min-width: 980px) {
+            .section-subtitle {
+                width: 70% !important;
+            }
+               
+        }
+        @media (max-width: 980px) {
+             .search-bar {
+                    position: absolute ;
+                    height: 200px;
+                }
+        }
+        a.sticky.main-btn {
+            color: white !important;
+        }
+    </style>
+@stop
 @section("js")
     @parent
     <script src="{{ asset('front')}}/js/properties-list.js" ></script>
+    
+    <script>
+    // Add animations and hover effects to property cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const propertyCards = document.querySelectorAll('.property-card');
+        
+        // Add hover effects
+        propertyCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+        
+        // Add staggered reveal animation to property cards
+        setTimeout(() => {
+            propertyCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        }, 300);
+    });
+    </script>
     <script>
     var val=0;
     function functiondec($getter_setter,$show,$cal){
@@ -264,12 +514,12 @@
         if($getter_setter=="#adults-data"){
             $($getter_setter+'-show').html(val +" Adults");
             if(val<=1){
-               $($getter_setter+'-show').html(val +" Adult"); 
+               $($getter_setter+'-show').html(val +" Adult");
             }
         }else{
              $($getter_setter+'-show').html(val +" Children");
             if(val<=1){
-               $($getter_setter+'-show').html(val +" Child"); 
+               $($getter_setter+'-show').html(val +" Child");
             }
         }
         $($show).val($show_actual_data);
@@ -286,12 +536,12 @@
         if($getter_setter=="#adults-data"){
             $($getter_setter+'-show').html(val +" Adults");
             if(val<=1){
-               $($getter_setter+'-show').html(val +" Adult"); 
+               $($getter_setter+'-show').html(val +" Adult");
             }
         }else{
              $($getter_setter+'-show').html(val +" Children");
             if(val<=1){
-               $($getter_setter+'-show').html(val +" Child"); 
+               $($getter_setter+'-show').html(val +" Child");
             }
         }
     }
@@ -307,7 +557,7 @@
 	@endphp
 	var checkin = <?php echo $checkin;  ?>;
 	var checkout = <?php echo ($checkout);  ?>;
-	var blocked= <?php echo ($blocked);  ?>;  
+	var blocked= <?php echo ($blocked);  ?>;
     function clearDataForm(){
         $("#start_date").val('');
         $("#end_date").val('');
@@ -315,13 +565,13 @@
     (function () {
         @if(Request::get("start_date"))
             @if(Request::get("end_date"))
-                $("#demo17").val("{{ request()->start_date }} - {{ request()->end_date }}");     
+                $("#demo17").val("{{ request()->start_date }} - {{ request()->end_date }}");
             @endif
         @endif
         abc=document.getElementById("demo17");
         var demo17 = new HotelDatepicker(
             abc,
-            {
+            {   endDate: "{{date('Y-m-d', strtotime('+30 months'))}}",
                 @if($checkin)
                    noCheckInDates: checkin,
                 @endif
@@ -371,6 +621,6 @@
         y=document.getElementById("month-2-demo17");
         y.querySelector(".datepicker__month-button--prev").click();
     })  ;
-    function getDateData(objectDate){let day = objectDate.getDate();let month = objectDate.getMonth()+1;let year = objectDate.getFullYear();if (day < 10) {day = '0' + day;}if (month < 10) {month = `0${month}`;}format1 = `${year}-${month}-${day}`;return  format1 ;}  
+    function getDateData(objectDate){let day = objectDate.getDate();let month = objectDate.getMonth()+1;let year = objectDate.getFullYear();if (day < 10) {day = '0' + day;}if (month < 10) {month = `0${month}`;}format1 = `${year}-${month}-${day}`;return  format1 ;}
 </script>
 @stop

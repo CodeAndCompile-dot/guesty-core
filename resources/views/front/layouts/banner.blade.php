@@ -1,10 +1,16 @@
-{{-- Banner partial — Phase 10 will flesh this out --}}
-<section class="breadcrumb" style="background-image: url({{ $bannerImage ?? asset('front/images/internal-banner.webp') }});">
-    <div class="auto-container">
-        <h2>{{ $name ?? '' }}</h2>
-        <ul class="page-breadcrumb">
-            <li><a href="{{ url('/') }}">Home</a></li>
-            <li>/ {{ $name ?? '' }}</li>
-        </ul>
+<div class="banner">
+    <div class="c-hero__background">
+        <img class="img-fluid" src="{{ $bannerImage }}" title="{{ $name }}" alt="{{ $name }}">    
     </div>
-</section>
+    <div class="guides">
+        <h1 class="c-hero__title">{{$name}}</h1>
+    </div>
+</div>
+<div class="breadcrumb-wrap">
+    <div class="container">
+        <div class="breadcrumb single-breadcrumb">
+            <a href="{{ url('/') }}"><i class="fa-solid fa-house"></i>Home</a>
+            <span><i class="fa-solid fa-chevron-right"></i></span> {{$name}}
+        </div>
+    </div>
+</div>

@@ -61,14 +61,20 @@ class SettingComposerTest extends TestCase
         // Clear cache to force re-read
         Cache::forget('setting_data');
 
+        // Create a temporary blade view for testing
+        file_put_contents(resource_path('views/test_setting_composer.blade.php'), 'test');
+
         $composer = new SettingComposer;
-        $view = View::make('welcome');
+        $view = View::make('test_setting_composer');
         $composer->compose($view);
 
         $data = $view->getData();
 
         $this->assertArrayHasKey('setting_data', $data);
         $this->assertCount(0, $data['setting_data']);
+
+        // Cleanup
+        @unlink(resource_path('views/test_setting_composer.blade.php'));
     }
 
     public function test_setting_data_is_cached(): void
@@ -90,21 +96,25 @@ class SettingComposerTest extends TestCase
 
         $composer = new SettingComposer;
 
+        // Create a temporary blade view for testing
+        file_put_contents(resource_path('views/test_setting_composer.blade.php'), 'test');
+
         // First call — should query DB and cache
-        $view1 = View::make('welcome');
+        $view1 = View::make('test_setting_composer');
         $composer->compose($view1);
 
         // Verify it's now cached
         $this->assertTrue(Cache::has('setting_data'));
 
         // Second call — should use cache
-        $view2 = View::make('welcome');
+        $view2 = View::make('test_setting_composer');
         $composer->compose($view2);
 
         $data = $view2->getData();
         $this->assertEquals('cached_value', $data['setting_data']['cached_key']);
 
         // Cleanup
+        @unlink(resource_path('views/test_setting_composer.blade.php'));
         Schema::dropIfExists('basic_settings');
     }
 }
